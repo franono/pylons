@@ -308,14 +308,15 @@ class RemoteDataStoreImp implements RemoteDataStore {
   final FirestoreHelper firebaseHelper;
   final AnalyticsHelper analyticsHelper;
 
-  RemoteDataStoreImp(
-      {required this.dynamicLinksGenerator,
-      required this.httpClient,
-      required this.firebaseHelper,
-      required this.analyticsHelper,
-      required this.crashlyticsHelper,
-      required this.storePaymentService,
-      required this.firebaseAppCheck});
+  RemoteDataStoreImp({
+    required this.dynamicLinksGenerator,
+    required this.httpClient,
+    required this.firebaseHelper,
+    required this.analyticsHelper,
+    required this.crashlyticsHelper,
+    required this.storePaymentService,
+    required this.firebaseAppCheck,
+  });
 
   @override
   Future<void> updateLikeStatus({required String recipeId, required String cookBookID, required String walletAddress}) async {
@@ -324,7 +325,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/actions/likes/$cookBookID/$recipeId");
 
-    final response = await httpClient.post(uri, body: body);
+    final response = await httpClient.post(uri, body: body).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final recipeMap = jsonDecode(response.body) as Map<String, dynamic>;
@@ -348,7 +351,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     log("$baseApiUrl/api/actions/likes/$cookBookID/$recipeId");
 
-    final response = await httpClient.get(uri);
+    final response = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final recipeMap = jsonDecode(response.body) as Map<String, dynamic>;
@@ -376,7 +381,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/actions/views/$cookBookID/$recipeId");
 
-    final response = await httpClient.post(uri, body: body);
+    final response = await httpClient.post(uri, body: body).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final recipeMap = jsonDecode(response.body) as Map<String, dynamic>;
@@ -398,7 +405,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/actions/views/$cookBookID/$recipeId");
 
-    final response = await httpClient.get(uri);
+    final response = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final recipeMap = jsonDecode(response.body) as Map<String, dynamic>;
@@ -424,7 +433,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/actions/likes/$walletAddress/$cookBookID/$recipeId");
 
-    final response = await httpClient.get(uri);
+    final response = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final recipeMap = jsonDecode(response.body) as Map<String, dynamic>;
@@ -447,9 +458,11 @@ class RemoteDataStoreImp implements RemoteDataStore {
   @override
   Future<StripeGenerateRegistrationTokenResponse> generateStripeRegistrationToken({required String address}) async {
     final baseEnv = getBaseEnv();
-    final response = await httpClient.get(Uri.parse("${baseEnv.baseStripeUrl}/generate-registration-token?address=$address")).timeout(
-          const Duration(seconds: 30),
-        );
+    final response = await httpClient
+        .get(
+          Uri.parse("${baseEnv.baseStripeUrl}/generate-registration-token?address=$address"),
+        )
+        .timeout(const Duration(seconds: 30));
 
     log(response.body, name: "Stripe | generateStripeRegistrationToken");
 
@@ -467,7 +480,11 @@ class RemoteDataStoreImp implements RemoteDataStore {
   @override
   Future<StripeGenerateUpdateTokenResponse> generateUpdateToken({required String address}) async {
     final baseEnv = getBaseEnv();
-    final response = await httpClient.get(Uri.parse("${baseEnv.baseStripeUrl}/generate-update-token?address=$address"));
+    final response = await httpClient
+        .get(
+          Uri.parse("${baseEnv.baseStripeUrl}/generate-update-token?address=$address"),
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == API_SUCCESS_CODE) {
       return StripeGenerateUpdateTokenResponse.fromJson(json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>);
@@ -648,7 +665,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final transactionUri = '${baseEnv.baseApiUrl}/pylons/tx?address=%27$address%27';
 
-    final transactionResponse = await httpClient.get(Uri.parse(transactionUri));
+    final transactionResponse = await httpClient.get(Uri.parse(transactionUri)).timeout(
+          const Duration(seconds: 30),
+        );
 
     final transactionMap = jsonDecode(transactionResponse.body);
 
@@ -665,7 +684,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/notifications/getAllNotifications/$walletAddress/$limit/$offset");
 
-    final notificationResponse = await httpClient.get(uri);
+    final notificationResponse = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (notificationResponse.statusCode != API_SUCCESS_CODE) {
       throw HandlerFactory.ERR_SOMETHING_WENT_WRONG;
@@ -691,7 +712,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
     final uri = Uri.parse("$baseApiUrl/pylons/item_history/$cookBookId/$itemId");
     final List<NftOwnershipHistory> historyList = [];
 
-    final historyResponse = await httpClient.get(uri);
+    final historyResponse = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (historyResponse.statusCode != API_SUCCESS_CODE) {
       throw HandlerFactory.ERR_SOMETHING_WENT_WRONG;
@@ -712,13 +735,15 @@ class RemoteDataStoreImp implements RemoteDataStore {
   }
 
   @override
-  Future<List<NftOwnershipHistory>> getNftOwnershipHistoryByCookbookIdAndRecipeId({required String cookBookId, required String recipeId}) async{
+  Future<List<NftOwnershipHistory>> getNftOwnershipHistoryByCookbookIdAndRecipeId({required String cookBookId, required String recipeId}) async {
     final baseApiUrl = getBaseEnv().baseApiUrl;
     final uri = Uri.parse("$baseApiUrl/pylons/get_recipe_history/$cookBookId/$recipeId");
 
     final List<NftOwnershipHistory> historyList = [];
 
-    final historyResponse = await httpClient.get(uri);
+    final historyResponse = await httpClient.get(uri).timeout(
+          const Duration(seconds: 30),
+        );
 
     if (historyResponse.statusCode != API_SUCCESS_CODE) {
       throw HandlerFactory.ERR_SOMETHING_WENT_WRONG;
@@ -747,7 +772,10 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     if (walletsResultEither.isLeft()) {
       crashlyticsHelper.recordFatalError(error: walletsResultEither.swap().toOption().toNullable()!.message);
-      throw const TransactionSigningFailure(message: SOMETHING_WRONG_FETCHING_WALLETS, type: HandlerFactory.ERR_FETCHING_WALLETS);
+      throw const TransactionSigningFailure(
+        message: SOMETHING_WRONG_FETCHING_WALLETS,
+        type: HandlerFactory.ERR_FETCHING_WALLETS,
+      );
     }
 
     final accountsList = walletsResultEither.getOrElse(() => []);
@@ -757,7 +785,10 @@ class RemoteDataStoreImp implements RemoteDataStore {
     final info = accountsList.last;
     final walletLookupKey = createWalletLookUp(info);
 
-    final signedTransaction = await transactionSigningGateway.signTransaction(transaction: unsignedTransaction, accountLookupKey: walletLookupKey);
+    final signedTransaction = await transactionSigningGateway.signTransaction(
+      transaction: unsignedTransaction,
+      accountLookupKey: walletLookupKey,
+    );
 
     if (signedTransaction.isLeft()) {
       crashlyticsHelper.recordFatalError(error: signedTransaction.swap().toOption().toNullable()!.toString());
@@ -774,7 +805,10 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     if (response.isLeft()) {
       crashlyticsHelper.recordFatalError(error: response.swap().toOption().toNullable()!.toString());
-      throw TransactionSigningFailure(message: response.swap().toOption().toNullable().toString(), type: HandlerFactory.ERR_SOMETHING_WENT_WRONG);
+      throw TransactionSigningFailure(
+        message: response.swap().toOption().toNullable().toString(),
+        type: HandlerFactory.ERR_SOMETHING_WENT_WRONG,
+      );
     }
 
     return response.getOrElse(() => TransactionResponse.initial()).hash;
@@ -870,7 +904,10 @@ class RemoteDataStoreImp implements RemoteDataStore {
       ..recipeId = recipeId;
     final response = await queryClient.listExecutionsByRecipe(queryExecutionListByRecipe);
 
-    return ExecutionListByRecipeResponse(completedExecutions: response.completedExecutions, pendingExecutions: response.pendingExecutions);
+    return ExecutionListByRecipeResponse(
+      completedExecutions: response.completedExecutions,
+      pendingExecutions: response.pendingExecutions,
+    );
   }
 
   @override
@@ -919,7 +956,9 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/fcmtoken/update/$address/$fcmToken");
 
-    final response = await httpClient.post(uri, headers: {FIREBASE_APP_CHECK_HEADER: appCheckToken});
+    final response = await httpClient.post(uri, headers: {FIREBASE_APP_CHECK_HEADER: appCheckToken}).timeout(
+      const Duration(seconds: 30),
+    );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       return true;
@@ -934,7 +973,15 @@ class RemoteDataStoreImp implements RemoteDataStore {
 
     final uri = Uri.parse("$baseApiUrl/api/notifications/markread");
 
-    final response = await httpClient.post(uri, headers: {FIREBASE_APP_CHECK_HEADER: appCheckToken, 'Content-type': 'application/json'}, body: jsonEncode({kNotificationsIds: idsList}));
+    final response = await httpClient
+        .post(uri,
+            headers: {FIREBASE_APP_CHECK_HEADER: appCheckToken, 'Content-type': 'application/json'},
+            body: jsonEncode(
+              {kNotificationsIds: idsList},
+            ))
+        .timeout(
+          const Duration(seconds: 30),
+        );
 
     if (response.statusCode == API_SUCCESS_CODE) {
       final historyMap = jsonDecode(response.body);
@@ -1164,8 +1211,18 @@ class RemoteDataStoreImp implements RemoteDataStore {
   }
 
   @override
-  Future<bool> logPurchaseItem({required String recipeId, required String recipeName, required String author, required double purchasePrice}) async {
-    await analyticsHelper.logPurchaseItem(recipeId: recipeId, recipeName: recipeName, author: author, purchasePrice: purchasePrice);
+  Future<bool> logPurchaseItem({
+    required String recipeId,
+    required String recipeName,
+    required String author,
+    required double purchasePrice,
+  }) async {
+    await analyticsHelper.logPurchaseItem(
+      recipeId: recipeId,
+      recipeName: recipeName,
+      author: author,
+      purchasePrice: purchasePrice,
+    );
     return true;
   }
 

@@ -72,7 +72,9 @@ final sl = GetIt.instance;
 /// This method is used for initializing the dependencies
 Future<void> init() async {
   /// Services
-  sl.registerLazySingleton<InternetConnectionChecker>(() => InternetConnectionChecker.createInstance(checkTimeout: const Duration(seconds: 20)));
+  sl.registerLazySingleton<InternetConnectionChecker>(
+    () => InternetConnectionChecker.createInstance(checkTimeout: const Duration(seconds: 20)),
+  );
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<IPCEngine>(() => IPCEngine(repository: sl(), walletsStore: sl(), accountProvider: sl<AccountProvider>()));
   sl.registerFactory<AudioPlayerHelper>(() => AudioPlayerHelperImpl(sl()));
@@ -154,7 +156,13 @@ Future<void> init() async {
 
   /// Data Sources
   sl.registerLazySingleton<LocalDataSource>(
-    () => LocalDataSourceImp(picker: sl(), sharedPreferences: sl(), flutterSecureStorage: sl(), permissionService: sl(), database: sl()),
+    () => LocalDataSourceImp(
+      picker: sl(),
+      sharedPreferences: sl(),
+      flutterSecureStorage: sl(),
+      permissionService: sl(),
+      database: sl(),
+    ),
   );
 
   sl.registerLazySingleton<PermissionService>(
@@ -197,8 +205,20 @@ Future<void> init() async {
   /// ViewModels
   sl.registerLazySingleton<WalletsStore>(() => WalletsStoreImp(repository: sl(), crashlyticsHelper: sl(), accountProvider: sl(), remoteNotificationProvider: sl()));
   sl.registerFactory(
-      () => PurchaseItemViewModel(sl(), audioPlayerHelper: sl(), videoPlayerHelper: sl(), repository: sl(), shareHelper: sl(), accountPublicInfo: sl<AccountProvider>().accountPublicInfo!));
-  sl.registerLazySingleton(() => CollectionViewModel(walletsStore: sl(), thumbnailHelper: sl(), accountPublicInfoInfo: sl<AccountProvider>().accountPublicInfo!));
+    () => PurchaseItemViewModel(
+      sl(),
+      audioPlayerHelper: sl(),
+      videoPlayerHelper: sl(),
+      repository: sl(),
+      shareHelper: sl(),
+      accountPublicInfo: sl<AccountProvider>().accountPublicInfo!,
+    ),
+  );
+  sl.registerLazySingleton(() => CollectionViewModel(
+        walletsStore: sl(),
+        thumbnailHelper: sl(),
+        accountPublicInfoInfo: sl<AccountProvider>().accountPublicInfo!,
+      ));
   sl.registerLazySingleton(() => StripeHandler(walletsStore: sl(), localDataSource: sl(), repository: sl(), accountProvider: sl()));
   sl.registerLazySingleton(() => HomeProvider(repository: sl(), accountPublicInfo: sl<AccountProvider>().accountPublicInfo!));
   sl.registerLazySingleton(() => GeneralScreenViewModel());
